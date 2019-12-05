@@ -113,11 +113,11 @@ func (p *Program) GetMemory(index int) int {
 }
 
 func (p *Program) GetOpcode() Opcode {
-	return (Opcode)(p.memory[p.ip] % 100)
+	return Opcode (p.memory[p.ip] % 100)
 }
 
 func (p *Program) GetAddressingMode(index int) AddressingMode {
-	return (AddressingMode)((p.memory[p.ip] / int(math.Pow10(index+1))) % 10)
+	return AddressingMode ((p.memory[p.ip] / int(math.Pow10(index+1))) % 10)
 }
 
 func (p *Program) GetOutputOperand(index int) *int {
