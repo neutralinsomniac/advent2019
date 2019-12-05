@@ -1,6 +1,7 @@
 package intcode
 
 import (
+	"bufio"
 	"fmt"
 	"io/ioutil"
 	"math"
@@ -18,15 +19,15 @@ func check(e error) {
 type Opcode int
 
 const (
-	Add    Opcode = 1
-	Mult          = 2
-	Input         = 3
-	Output        = 4
-	JumpIfTrue    = 5
-	JumpIfFalse   = 6
-	LessThan      = 7
-	Equals        = 8
-	Halt          = 99
+	Add         Opcode = 1
+	Mult               = 2
+	Input              = 3
+	Output             = 4
+	JumpIfTrue         = 5
+	JumpIfFalse        = 6
+	LessThan           = 7
+	Equals             = 8
+	Halt               = 99
 )
 
 type AddressingMode int
@@ -39,6 +40,7 @@ const (
 type Program struct {
 	memory []int
 	ip     int
+	halted bool
 }
 
 func (o Opcode) String() string {
@@ -135,4 +137,95 @@ func (p *Program) GetInputOperand(index int) int {
 		panic(fmt.Sprintf("unknown addressing mode: %v", mode))
 	}
 	return inputValue
+}
+
+func (p *Program) Step() {
+	opcode := p.GetOpcode()
+	switch opcode {
+	case Add:
+		dest := p.GetOutputOperand(3)
+		input1 := p.GetInputOperand(1)
+		input2 := p.GetInputOperand(2)
+		fmt.Printf("*%d = %d + %d\n", p.GetMemory(p.GetIp()+3), input1, input2)
+		*dest = input1 + input2
+		p.ip += 4
+	case Mult:
+		dest := p.GetOutputOperand(3)
+		input1 := p.GetInputOperand(1)
+		input2 := p.GetInputOperand(2)
+		fmt.Printf("*%d = %d + %d\n", p.GetMemory(p.GetIp()+3), input1, input2)
+		*dest = input1 * input2
+		p.ip += 4
+	case Input:
+		reader := bufio.NewReader(os.Stdin)
+		dest := p.GetOutputOperand(1)
+		valStr, _ := reader.ReadString('\n')
+		val, err := strconv.Atoi(valStr[:len(valStr)-1])
+		check(err)
+		*dest = val
+		p.ip += 2
+	case Output:
+		dest := p.GetOutputOperand(1)
+		fmt.Printf("output: %d\n", *dest)
+		p.ip += 2
+	case JumpIfTrue:
+		input1 := p.GetInputOperand(1)
+		input2 := p.GetInputOperand(2)
+		fmt.Printf("if %d != 0, jmp %d\n", input1, input2)
+		if input1 != 0 {
+			p.ip = input2
+		} else {
+			p.ip += 3
+		}
+	case JumpIfFalse:
+		input1 := p.GetInputOperand(1)
+		input2 := p.GetInputOperand(2)
+		fmt.Printf("if %d == 0, jmp %d\n", input1, input2)
+		if input1 == 0 {
+			p.ip = input2
+		} else {
+			p.ip += 3
+		}
+	case LessThan:
+		input1 := p.GetInputOperand(1)
+		input2 := p.GetInputOperand(2)
+		dest := p.GetOutputOperand(3)
+		fmt.Printf("*%d = (if %d < %d)\n", p.GetMemory(p.GetIp()+3), input1, input2)
+		if input1 < input2 {
+			*dest = 1
+		} else {
+			*dest = 0
+		}
+		p.ip += 4
+	case Equals:
+		input1 := p.GetInputOperand(1)
+		input2 := p.GetInputOperand(2)
+		dest := p.GetOutputOperand(3)
+		fmt.Printf("*%d = (if %d == %d)\n", p.GetMemory(p.GetIp()+3), input1, input2)
+		if input1 == input2 {
+			*dest = 1
+		} else {
+			*dest = 0
+		}
+		p.ip += 4
+	case Halt:
+		p.halted = true
+	default:
+		panic(fmt.Sprintf("encountered unknown opcode: %d", opcode))
+	}
+}
+
+func (p *Program) StepBy(steps int) {
+	for i := 0; i < steps; i++ {
+		p.Step()
+	}
+}
+
+func (p *Program) Run() {
+	p.halted = false
+	p.ip = 0
+
+	for !p.halted {
+		p.Step()
+	}
 }
