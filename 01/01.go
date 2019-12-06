@@ -1,9 +1,9 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
-	"bufio"
 	"strconv"
 )
 
@@ -27,9 +27,9 @@ func main() {
 		mass, _ := strconv.Atoi(scanner.Text())
 		fuel := calcFuel(mass)
 		total_fuel := fuel
-		for (fuel > 0) {
+		for fuel > 0 {
 			fuel = calcFuel(fuel)
-			if (fuel > 0) {
+			if fuel > 0 {
 				total_fuel += fuel
 			}
 		}

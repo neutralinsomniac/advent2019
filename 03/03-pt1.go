@@ -124,7 +124,7 @@ func findIntersections(world map[point]uint8) []point {
 	var points []point
 
 	for point, wireId := range world {
-		if wireId == Wire1 | Wire2 {
+		if wireId == Wire1|Wire2 {
 			points = append(points, point)
 		}
 	}
@@ -140,7 +140,7 @@ func abs(x int) int {
 }
 
 func manhattan(start point, end point) int {
-	return abs(start.x - end.x) + abs(start.y - end.y)
+	return abs(start.x-end.x) + abs(start.y-end.y)
 }
 
 func findShortestManhattanDistance(start point, points []point) int {

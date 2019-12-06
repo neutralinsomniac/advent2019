@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 func main() {
 	count := 0

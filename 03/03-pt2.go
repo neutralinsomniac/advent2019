@@ -33,7 +33,7 @@ type point struct {
 }
 
 type footprint struct {
-	wireId uint8
+	wireId   uint8
 	distance int
 }
 
@@ -108,7 +108,7 @@ func fuckingMOVE(world map[point]footprint, start *point, distance *int, movemen
 			start.y += 1
 			*distance += 1
 			if f, ok := world[*start]; ok {
-				if f.wireId | wireId != f.wireId {
+				if f.wireId|wireId != f.wireId {
 					f.distance += *distance
 					f.wireId |= wireId
 					world[*start] = f
@@ -124,7 +124,7 @@ func fuckingMOVE(world map[point]footprint, start *point, distance *int, movemen
 			start.y -= 1
 			*distance += 1
 			if f, ok := world[*start]; ok {
-				if f.wireId | wireId != f.wireId {
+				if f.wireId|wireId != f.wireId {
 					f.distance += *distance
 					f.wireId |= wireId
 					world[*start] = f
@@ -140,7 +140,7 @@ func fuckingMOVE(world map[point]footprint, start *point, distance *int, movemen
 			start.x += 1
 			*distance += 1
 			if f, ok := world[*start]; ok {
-				if f.wireId | wireId != f.wireId {
+				if f.wireId|wireId != f.wireId {
 					f.distance += *distance
 					f.wireId |= wireId
 					world[*start] = f
@@ -156,7 +156,7 @@ func fuckingMOVE(world map[point]footprint, start *point, distance *int, movemen
 			start.x -= 1
 			*distance += 1
 			if f, ok := world[*start]; ok {
-				if f.wireId | wireId != f.wireId {
+				if f.wireId|wireId != f.wireId {
 					f.distance += *distance
 					f.wireId |= wireId
 					world[*start] = f
@@ -174,7 +174,7 @@ func findIntersections(world map[point]uint8) []point {
 	var points []point
 
 	for point, wireId := range world {
-		if wireId == Wire1 | Wire2 {
+		if wireId == Wire1|Wire2 {
 			points = append(points, point)
 		}
 	}
@@ -190,7 +190,7 @@ func abs(x int) int {
 }
 
 func manhattan(start point, end point) int {
-	return abs(start.x - end.x) + abs(start.y - end.y)
+	return abs(start.x-end.x) + abs(start.y-end.y)
 }
 
 func findShortestManhattanDistance(start point, points []point) int {

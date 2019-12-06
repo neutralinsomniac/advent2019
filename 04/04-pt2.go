@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
-import "strconv"
+import (
+	"fmt"
+	"strconv"
+)
 
 func main() {
 	count := 0
@@ -40,7 +42,6 @@ nextNumber:
 			//fmt.Println("fail no groups:", str)
 			continue
 		}
-
 
 		count++
 		fmt.Println(i)

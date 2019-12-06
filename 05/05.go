@@ -2,9 +2,10 @@ package main
 
 import (
 	"fmt"
-	"github.com/neutralinsomniac/advent2019/intcode"
 	"os"
 	"strings"
+
+	"github.com/neutralinsomniac/advent2019/intcode"
 )
 
 func main() {
