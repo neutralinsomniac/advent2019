@@ -3,6 +3,7 @@ package intcode
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"math"
 	"os"
@@ -41,6 +42,7 @@ type Program struct {
 	memory []int
 	ip     int
 	halted bool
+	reader *bufio.Reader
 }
 
 func (o Opcode) String() string {
@@ -113,11 +115,11 @@ func (p *Program) GetMemory(index int) int {
 }
 
 func (p *Program) GetOpcode() Opcode {
-	return Opcode (p.memory[p.ip] % 100)
+	return Opcode(p.memory[p.ip] % 100)
 }
 
 func (p *Program) GetAddressingMode(index int) AddressingMode {
-	return AddressingMode ((p.memory[p.ip] / int(math.Pow10(index+1))) % 10)
+	return AddressingMode((p.memory[p.ip] / int(math.Pow10(index+1))) % 10)
 }
 
 func (p *Program) GetOutputOperand(index int) *int {
@@ -157,9 +159,8 @@ func (p *Program) Step() {
 		*dest = input1 * input2
 		p.ip += 4
 	case Input:
-		reader := bufio.NewReader(os.Stdin)
 		dest := p.GetOutputOperand(1)
-		valStr, _ := reader.ReadString('\n')
+		valStr, _ := p.reader.ReadString('\n')
 		val, err := strconv.Atoi(valStr[:len(valStr)-1])
 		check(err)
 		*dest = val
@@ -221,9 +222,10 @@ func (p *Program) StepBy(steps int) {
 	}
 }
 
-func (p *Program) Run() {
+func (p *Program) Run(reader io.Reader) {
 	p.halted = false
 	p.ip = 0
+	p.reader = bufio.NewReader(reader)
 
 	for !p.halted {
 		p.Step()
