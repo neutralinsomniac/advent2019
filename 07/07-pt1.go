@@ -49,7 +49,6 @@ func main() {
 	bestThrust := 0
 	for p := make([]int, len(phases)); p[0] < len(p); nextPerm(p) {
 		inputSignal := 0
-		var thrust int
 		ampA.Reset()
 		ampB.Reset()
 		ampC.Reset()
@@ -60,12 +59,11 @@ func main() {
 			ampInput := strings.NewReader(fmt.Sprintf("%d\n%d\n", phase, inputSignal))
 			output := amps[i].Run(ampInput)
 			inputSignal = output[0]
-			thrust = output[0] // on our last loop iteration, this will have the correct value
 		}
 		// check to see if we reached MAX THRUST
-		if thrust > bestThrust {
+		if inputSignal > bestThrust {
 			copy(bestPhase, phaseInputs)
-			bestThrust = thrust
+			bestThrust = inputSignal
 		}
 	}
 	fmt.Println("best thrust value:", bestThrust)
