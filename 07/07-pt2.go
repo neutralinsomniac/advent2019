@@ -37,7 +37,7 @@ func main() {
 
 	fmt.Println("*** PART 2 ***")
 	ampA.InitStateFromFile(os.Args[1])
-	// init all but ampA
+	// copy ampA to all other amps
 	for _, amp := range amps {
 		if amp != &ampA {
 			amp.InitStateFromProgram(&ampA)
