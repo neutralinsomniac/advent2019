@@ -38,10 +38,8 @@ func main() {
 	fmt.Println("*** PART 2 ***")
 	amps[0].InitStateFromFile(os.Args[1])
 	// copy the first amp to all other amps
-	for i, amp := range amps {
-		if i != 0 {
-			amp.InitStateFromProgram(amps[0])
-		}
+	for _, amp := range amps[1:] {
+		amp.InitStateFromProgram(amps[0])
 	}
 
 	phases := []int{5, 6, 7, 8, 9}
