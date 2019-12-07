@@ -20,9 +20,9 @@ func main() {
 			}
 		}
 		if consec && ascending {
-			fmt.Println(i)
 			count++
 		}
 	}
+	fmt.Println("*** PART 1 ***")
 	fmt.Println("count:", count)
 }

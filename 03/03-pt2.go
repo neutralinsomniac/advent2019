@@ -100,7 +100,7 @@ func check(e error) {
 }
 
 func fuckingMOVE(world map[point]footprint, start *point, distance *int, movement movement, wireId uint8, isects *[]int) {
-	fmt.Println(start, movement)
+	//fmt.Println(start, movement)
 
 	switch movement.direction {
 	case up:
@@ -170,45 +170,6 @@ func fuckingMOVE(world map[point]footprint, start *point, distance *int, movemen
 	}
 }
 
-func findIntersections(world map[point]uint8) []point {
-	var points []point
-
-	for point, wireId := range world {
-		if wireId == Wire1|Wire2 {
-			points = append(points, point)
-		}
-	}
-
-	return points
-}
-
-func abs(x int) int {
-	if x < 0 {
-		return -x
-	}
-	return x
-}
-
-func manhattan(start point, end point) int {
-	return abs(start.x-end.x) + abs(start.y-end.y)
-}
-
-func findShortestManhattanDistance(start point, points []point) int {
-	var closestDistance = math.MaxInt32
-
-	if len(points) == 0 {
-		return 0
-	}
-
-	for _, point := range points {
-		dist := manhattan(start, point)
-		if dist < closestDistance {
-			closestDistance = dist
-		}
-	}
-	return closestDistance
-}
-
 func main() {
 	wire1, wire2 := initStateFromFile(os.Args[1])
 
@@ -230,5 +191,12 @@ func main() {
 		fuckingMOVE(theWholeWorld, &startingPoint, &distance, movement, Wire2, &isects)
 	}
 
-	fmt.Println(isects)
+	fmt.Println("*** PART 2 ***")
+	min := math.MaxInt32
+	for _, steps := range isects {
+		if steps < min {
+			min = steps
+		}
+	}
+	fmt.Println(min)
 }

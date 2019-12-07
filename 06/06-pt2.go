@@ -66,6 +66,6 @@ func (u Universe) countOrbitalTransfers() int {
 func main() {
 	universe := initStateFromFile("input")
 
+	fmt.Println("*** PART 2 ***")
 	fmt.Println(universe.countOrbitalTransfers())
-
 }

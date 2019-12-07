@@ -35,5 +35,6 @@ func main() {
 		}
 		sum += total_fuel
 	}
+	fmt.Println("*** PART 2 ***")
 	fmt.Println(sum)
 }

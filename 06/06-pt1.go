@@ -54,8 +54,9 @@ func (u Universe) countOrbits() int {
 
 func main() {
 	universe := initStateFromFile("input")
-	fmt.Println(universe)
+	//fmt.Println(universe)
 
+	fmt.Println("*** PART 1 ***")
 	fmt.Println(universe.countOrbits())
 
 }

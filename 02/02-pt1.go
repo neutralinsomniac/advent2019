@@ -20,15 +20,15 @@ func main() {
 
 	stringArray := strings.Split(string(dat), ",")
 
-	fmt.Println(stringArray)
+	//fmt.Println(stringArray)
 	state := make([]int, len(stringArray))
 	for i := 0; i < len(stringArray); i++ {
 		state[i], err = strconv.Atoi(strings.TrimSpace(stringArray[i]))
 		check(err)
 	}
-	fmt.Println(state)
+	//fmt.Println(state)
 
-	fmt.Println(len(state))
+	//fmt.Println(len(state))
 	for i := 0; i < len(state); i += 4 {
 		opcode := state[i]
 		switch opcode {
@@ -40,5 +40,6 @@ func main() {
 			break
 		}
 	}
-	fmt.Println(state)
+	fmt.Println("*** PART 1 ***")
+	fmt.Println(state[0])
 }

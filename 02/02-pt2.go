@@ -50,7 +50,9 @@ func main() {
 				}
 			}
 			if state[0] == 19690720 {
-				fmt.Println(state)
+				//fmt.Println(state)
+				fmt.Println("*** PART 2 ***")
+				fmt.Println(state[1], state[2])
 				return
 			}
 		}

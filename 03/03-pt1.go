@@ -87,7 +87,7 @@ func check(e error) {
 }
 
 func fuckingMOVE(world map[point]uint8, start *point, movement movement, wireId uint8) {
-	fmt.Println(start, movement)
+	//fmt.Println(start, movement)
 	switch movement.direction {
 	case up:
 		for i := 0; i < movement.distance; i++ {
@@ -178,7 +178,8 @@ func main() {
 
 	isects := findIntersections(theWholeWorld)
 
-	fmt.Println(isects)
+	// fmt.Println(isects)
 
+	fmt.Println("*** PART 1 ***")
 	fmt.Println(findShortestManhattanDistance(point{}, isects))
 }

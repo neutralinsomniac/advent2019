@@ -44,7 +44,7 @@ nextNumber:
 		}
 
 		count++
-		fmt.Println(i)
 	}
+	fmt.Println("*** PART 2 ***")
 	fmt.Println("count:", count)
 }
