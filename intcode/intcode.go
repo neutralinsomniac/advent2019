@@ -295,11 +295,7 @@ func (p *Program) RunUntilOutput(reader io.Reader) (int, bool) {
 		p.Step()
 	}
 
-	if p.halted {
-		return 0, p.halted
-	}
-
-	// execute the Output opcode
+	// execute the Output opcode (or halt again if we halted; harmless)
 	p.Step()
 
 	// return the last output

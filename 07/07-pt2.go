@@ -64,6 +64,7 @@ func main() {
 		for halted := false; halted != true; i++ {
 			var tmp int
 			ampInput := strings.NewReader(fmt.Sprintf("%d\n", inputSignal))
+			// only update our signal if this amp actually returns a signal (instead of halting)
 			tmp, halted = amps[i%len(amps)].RunUntilOutput(ampInput)
 			if !halted {
 				inputSignal = tmp
