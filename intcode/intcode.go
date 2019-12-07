@@ -39,6 +39,7 @@ const (
 )
 
 type Program struct {
+	text   []int
 	memory []int
 	ip     int
 	halted bool
@@ -87,9 +88,14 @@ func (p *Program) setDebug(val bool) {
 	p.debug = val
 }
 
-func (p *Program) reset() {
+func (p *Program) Reset() {
 	p.ip = 0
 	p.output = nil
+	p.halted = false
+	if len(p.memory) != len(p.text) {
+		p.memory = make([]int, len(p.text))
+	}
+	copy(p.memory, p.text)
 }
 
 func (p *Program) InitStateFromFile(filename string) {
@@ -98,23 +104,35 @@ func (p *Program) InitStateFromFile(filename string) {
 
 	stringArray := strings.Split(string(dat), ",")
 
-	p.memory = make([]int, len(stringArray))
+	// copy text section
+	p.text = make([]int, len(stringArray))
 	for i := 0; i < len(stringArray); i++ {
-		p.memory[i], err = strconv.Atoi(strings.TrimSpace(stringArray[i]))
+		p.text[i], err = strconv.Atoi(strings.TrimSpace(stringArray[i]))
 		check(err)
 	}
 
-	p.reset()
+	p.Reset()
 	return
 }
 
 func (p *Program) InitStateFromProgram(other *Program) {
-	p.reset()
-	p.ip = other.ip
+	if len(p.text) != len(other.text) {
+		p.text = make([]int, len(other.text))
+	}
+	copy(p.text, other.text)
+
 	if len(p.memory) != len(other.memory) {
 		p.memory = make([]int, len(other.memory))
 	}
 	copy(p.memory, other.memory)
+
+	if len(p.output) != len(other.output) {
+		p.output = make([]int, len(other.output))
+	}
+	copy(p.output, other.output)
+
+	p.ip = other.ip
+	p.halted = other.halted
 }
 
 func (p *Program) SetIp(ip int) {
@@ -261,8 +279,6 @@ func (p *Program) StepBy(steps int) {
 }
 
 func (p *Program) Run(reader io.Reader) []int {
-	p.halted = false
-	p.ip = 0
 	p.reader = bufio.NewReader(reader)
 
 	for !p.halted {
@@ -270,4 +286,22 @@ func (p *Program) Run(reader io.Reader) []int {
 	}
 
 	return p.output
+}
+
+/* return output, halted */
+func (p *Program) RunUntilOutput(reader io.Reader) (int, bool) {
+	p.reader = bufio.NewReader(reader)
+	for p.GetOpcode() != Output && !p.halted {
+		p.Step()
+	}
+
+	if p.halted {
+		return 0, p.halted
+	}
+
+	// execute the Output opcode
+	p.Step()
+
+	// return the last output
+	return p.output[len(p.output)-1], p.halted
 }
