@@ -27,33 +27,31 @@ func getPerm(orig, p []int) []int {
 }
 
 func main() {
-	ampA := intcode.Program{}
-	ampB := intcode.Program{}
-	ampC := intcode.Program{}
-	ampD := intcode.Program{}
-	ampE := intcode.Program{}
-
-	amps := []*intcode.Program{&ampA, &ampB, &ampC, &ampD, &ampE}
+	amps := []*intcode.Program{
+		&intcode.Program{},
+		&intcode.Program{},
+		&intcode.Program{},
+		&intcode.Program{},
+		&intcode.Program{},
+	}
 
 	fmt.Println("*** PART 1 ***")
-	ampA.InitStateFromFile(os.Args[1])
+	amps[0].InitStateFromFile(os.Args[1])
 	// copy ampA to all other amps
-	for _, amp := range amps {
-		if amp != &ampA {
-			amp.InitStateFromProgram(&ampA)
+	for i, amp := range amps {
+		if i != 0 {
+			amp.InitStateFromProgram(amps[0])
 		}
 	}
 
 	phases := []int{0, 1, 2, 3, 4}
-	var bestPhase []int = make([]int, len(phases))
 	bestThrust := 0
 	for p := make([]int, len(phases)); p[0] < len(p); nextPerm(p) {
 		inputSignal := 0
-		ampA.Reset()
-		ampB.Reset()
-		ampC.Reset()
-		ampD.Reset()
-		ampE.Reset()
+		// reset ALL THE AMPS
+		for _, amp := range amps {
+			amp.Reset()
+		}
 		phaseInputs := getPerm(phases, p)
 		for i, phase := range phaseInputs {
 			ampInput := strings.NewReader(fmt.Sprintf("%d\n%d\n", phase, inputSignal))
@@ -62,10 +60,8 @@ func main() {
 		}
 		// check to see if we reached MAX THRUST
 		if inputSignal > bestThrust {
-			copy(bestPhase, phaseInputs)
 			bestThrust = inputSignal
 		}
 	}
 	fmt.Println("best thrust value:", bestThrust)
-	fmt.Println("best thrust phase:", bestPhase)
 }

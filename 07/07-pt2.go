@@ -27,20 +27,20 @@ func getPerm(orig, p []int) []int {
 }
 
 func main() {
-	ampA := intcode.Program{}
-	ampB := intcode.Program{}
-	ampC := intcode.Program{}
-	ampD := intcode.Program{}
-	ampE := intcode.Program{}
-
-	amps := []*intcode.Program{&ampA, &ampB, &ampC, &ampD, &ampE}
+	amps := []*intcode.Program{
+		&intcode.Program{},
+		&intcode.Program{},
+		&intcode.Program{},
+		&intcode.Program{},
+		&intcode.Program{},
+	}
 
 	fmt.Println("*** PART 2 ***")
-	ampA.InitStateFromFile(os.Args[1])
-	// copy ampA to all other amps
-	for _, amp := range amps {
-		if amp != &ampA {
-			amp.InitStateFromProgram(&ampA)
+	amps[0].InitStateFromFile(os.Args[1])
+	// copy the first amp to all other amps
+	for i, amp := range amps {
+		if i != 0 {
+			amp.InitStateFromProgram(amps[0])
 		}
 	}
 
@@ -48,11 +48,10 @@ func main() {
 	bestThrust := 0
 	for p := make([]int, len(phases)); p[0] < len(p); nextPerm(p) {
 		inputSignal := 0
-		ampA.Reset()
-		ampB.Reset()
-		ampC.Reset()
-		ampD.Reset()
-		ampE.Reset()
+		// reset ALL THE AMPS
+		for _, amp := range amps {
+			amp.Reset()
+		}
 		phaseInputs := getPerm(phases, p)
 		// first init from phase inputs
 		for i, phase := range phaseInputs {
