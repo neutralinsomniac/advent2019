@@ -43,7 +43,7 @@ func main() {
 	cleanAmplifier.InitStateFromFile(os.Args[1])
 
 	phases := []int{0, 1, 2, 3, 4}
-	var bestPhase []int
+	var bestPhase []int = make([]int, len(phases))
 	bestThrust := 0
 	for p := make([]int, len(phases)); p[0] < len(p); nextPerm(p) {
 		inputSignal := 0
@@ -67,4 +67,5 @@ func main() {
 		}
 	}
 	fmt.Println("best thrust value:", bestThrust)
+	fmt.Println("best thrust phase:", bestPhase)
 }
