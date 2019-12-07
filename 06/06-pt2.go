@@ -10,11 +10,11 @@ import (
 type Universe map[string]string
 
 func (u Universe) String() string {
-	s := ""
+	var s strings.Builder
 	for k, v := range u {
-		s += fmt.Sprintf("%s orbits %s\n", k, v)
+		fmt.Fprintf(&s, "%s orbits %s\n", k, v)
 	}
-	return s
+	return s.String()
 }
 
 func check(e error) {
