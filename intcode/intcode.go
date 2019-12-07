@@ -43,6 +43,8 @@ type Program struct {
 	ip     int
 	halted bool
 	reader *bufio.Reader
+	output []int
+	debug  bool
 }
 
 func (o Opcode) String() string {
@@ -81,6 +83,15 @@ func (a AddressingMode) String() string {
 	}
 }
 
+func (p *Program) setDebug(val bool) {
+	p.debug = val
+}
+
+func (p *Program) reset() {
+	p.ip = 0
+	p.output = nil
+}
+
 func (p *Program) InitStateFromFile(filename string) {
 	dat, err := ioutil.ReadFile(os.Args[1])
 	check(err)
@@ -93,9 +104,17 @@ func (p *Program) InitStateFromFile(filename string) {
 		check(err)
 	}
 
-	p.ip = 0
-
+	p.reset()
 	return
+}
+
+func (p *Program) InitStateFromProgram(other *Program) {
+	p.reset()
+	p.ip = other.ip
+	if len(p.memory) != len(other.memory) {
+		p.memory = make([]int, len(other.memory))
+	}
+	copy(p.memory, other.memory)
 }
 
 func (p *Program) SetIp(ip int) {
@@ -112,6 +131,10 @@ func (p *Program) IncrementIp(amount int) {
 
 func (p *Program) GetMemory(index int) int {
 	return p.memory[index]
+}
+
+func (p *Program) SetMemory(index int, value int) {
+	p.memory[index] = value
 }
 
 func (p *Program) GetOpcode() Opcode {
@@ -148,14 +171,18 @@ func (p *Program) Step() {
 		dest := p.GetOutputOperand(3)
 		input1 := p.GetInputOperand(1)
 		input2 := p.GetInputOperand(2)
-		fmt.Printf("*%d = %d + %d\n", p.GetMemory(p.GetIp()+3), input1, input2)
+		if p.debug {
+			fmt.Printf("*%d = %d + %d\n", p.GetMemory(p.GetIp()+3), input1, input2)
+		}
 		*dest = input1 + input2
 		p.ip += 4
 	case Mult:
 		dest := p.GetOutputOperand(3)
 		input1 := p.GetInputOperand(1)
 		input2 := p.GetInputOperand(2)
-		fmt.Printf("*%d = %d + %d\n", p.GetMemory(p.GetIp()+3), input1, input2)
+		if p.debug {
+			fmt.Printf("*%d = %d + %d\n", p.GetMemory(p.GetIp()+3), input1, input2)
+		}
 		*dest = input1 * input2
 		p.ip += 4
 	case Input:
@@ -167,12 +194,17 @@ func (p *Program) Step() {
 		p.ip += 2
 	case Output:
 		dest := p.GetOutputOperand(1)
-		fmt.Printf("output: %d\n", *dest)
+		if p.debug {
+			fmt.Printf("output: %d\n", *dest)
+		}
+		p.output = append(p.output, *dest)
 		p.ip += 2
 	case JumpIfTrue:
 		input1 := p.GetInputOperand(1)
 		input2 := p.GetInputOperand(2)
-		fmt.Printf("if %d != 0, jmp %d\n", input1, input2)
+		if p.debug {
+			fmt.Printf("if %d != 0, jmp %d\n", input1, input2)
+		}
 		if input1 != 0 {
 			p.ip = input2
 		} else {
@@ -181,7 +213,9 @@ func (p *Program) Step() {
 	case JumpIfFalse:
 		input1 := p.GetInputOperand(1)
 		input2 := p.GetInputOperand(2)
-		fmt.Printf("if %d == 0, jmp %d\n", input1, input2)
+		if p.debug {
+			fmt.Printf("if %d == 0, jmp %d\n", input1, input2)
+		}
 		if input1 == 0 {
 			p.ip = input2
 		} else {
@@ -191,7 +225,9 @@ func (p *Program) Step() {
 		input1 := p.GetInputOperand(1)
 		input2 := p.GetInputOperand(2)
 		dest := p.GetOutputOperand(3)
-		fmt.Printf("*%d = (if %d < %d)\n", p.GetMemory(p.GetIp()+3), input1, input2)
+		if p.debug {
+			fmt.Printf("*%d = (if %d < %d)\n", p.GetMemory(p.GetIp()+3), input1, input2)
+		}
 		if input1 < input2 {
 			*dest = 1
 		} else {
@@ -202,7 +238,9 @@ func (p *Program) Step() {
 		input1 := p.GetInputOperand(1)
 		input2 := p.GetInputOperand(2)
 		dest := p.GetOutputOperand(3)
-		fmt.Printf("*%d = (if %d == %d)\n", p.GetMemory(p.GetIp()+3), input1, input2)
+		if p.debug {
+			fmt.Printf("*%d = (if %d == %d)\n", p.GetMemory(p.GetIp()+3), input1, input2)
+		}
 		if input1 == input2 {
 			*dest = 1
 		} else {
@@ -222,7 +260,7 @@ func (p *Program) StepBy(steps int) {
 	}
 }
 
-func (p *Program) Run(reader io.Reader) {
+func (p *Program) Run(reader io.Reader) []int {
 	p.halted = false
 	p.ip = 0
 	p.reader = bufio.NewReader(reader)
@@ -230,4 +268,6 @@ func (p *Program) Run(reader io.Reader) {
 	for !p.halted {
 		p.Step()
 	}
+
+	return p.output
 }
