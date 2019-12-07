@@ -13,9 +13,12 @@ func main() {
 
 	fmt.Println("*** PART 1 ***")
 	program.InitStateFromFile(os.Args[1])
-	program.Run(strings.NewReader("1\n"))
+	output := program.Run(strings.NewReader("1\n"))
+	fmt.Println(output)
 
 	fmt.Println("*** PART 2 ***")
 	program.InitStateFromFile(os.Args[1])
-	program.Run(strings.NewReader("5\n"))
+	output = program.Run(strings.NewReader("5\n"))
+	fmt.Println(output)
+
 }
