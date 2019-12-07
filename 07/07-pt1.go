@@ -5,8 +5,6 @@ import (
 	"os"
 	"strings"
 
-	//"strings"
-
 	"github.com/neutralinsomniac/advent2019/intcode"
 )
 
@@ -29,8 +27,6 @@ func getPerm(orig, p []int) []int {
 }
 
 func main() {
-	cleanAmplifier := intcode.Program{}
-
 	ampA := intcode.Program{}
 	ampB := intcode.Program{}
 	ampC := intcode.Program{}
@@ -40,7 +36,13 @@ func main() {
 	amps := []*intcode.Program{&ampA, &ampB, &ampC, &ampD, &ampE}
 
 	fmt.Println("*** PART 1 ***")
-	cleanAmplifier.InitStateFromFile(os.Args[1])
+	ampA.InitStateFromFile(os.Args[1])
+	// init all but ampA
+	for _, amp := range amps {
+		if amp != &ampA {
+			amp.InitStateFromProgram(&ampA)
+		}
+	}
 
 	phases := []int{0, 1, 2, 3, 4}
 	var bestPhase []int = make([]int, len(phases))
@@ -48,11 +50,11 @@ func main() {
 	for p := make([]int, len(phases)); p[0] < len(p); nextPerm(p) {
 		inputSignal := 0
 		var thrust int
-		ampA.InitStateFromProgram(&cleanAmplifier)
-		ampB.InitStateFromProgram(&cleanAmplifier)
-		ampC.InitStateFromProgram(&cleanAmplifier)
-		ampD.InitStateFromProgram(&cleanAmplifier)
-		ampE.InitStateFromProgram(&cleanAmplifier)
+		ampA.Reset()
+		ampB.Reset()
+		ampC.Reset()
+		ampD.Reset()
+		ampE.Reset()
 		phaseInputs := getPerm(phases, p)
 		for i, phase := range phaseInputs {
 			ampInput := strings.NewReader(fmt.Sprintf("%d\n%d\n", phase, inputSignal))
