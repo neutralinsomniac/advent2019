@@ -12,8 +12,6 @@ func check(e error) {
 	}
 }
 
-type LayerCounts map[byte]int
-
 func main() {
 	fmt.Println("*** PART 2 ***")
 	dat, err := ioutil.ReadFile(os.Args[1])
@@ -25,8 +23,8 @@ func main() {
 		constructedImage[i] = '2'
 	}
 	for i, c := range dat[:len(dat)-1] {
-		if constructedImage[i % 150] == '2' && c != '2' {
-			constructedImage[i % 150] = c
+		if constructedImage[i%150] == '2' && c != '2' {
+			constructedImage[i%150] = c
 		}
 	}
 
@@ -37,7 +35,7 @@ func main() {
 		case '1':
 			fmt.Printf("X")
 		}
-		if (i+1) % 25 == 0 {
+		if (i+1)%25 == 0 {
 			fmt.Println("")
 		}
 	}
