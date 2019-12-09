@@ -28,6 +28,7 @@ const (
 	JumpIfFalse        = 6
 	LessThan           = 7
 	Equals             = 8
+	AdjustBP           = 9
 	Halt               = 99
 )
 
@@ -36,12 +37,14 @@ type AddressingMode int
 const (
 	Ind AddressingMode = 0
 	Imm                = 1
+	Rel                = 2
 )
 
 type Program struct {
 	text   []int
 	memory []int
 	ip     int
+	bp     int
 	halted bool
 	reader *bufio.Reader
 	output []int
@@ -66,6 +69,8 @@ func (o Opcode) String() string {
 		return "LessThan"
 	case Equals:
 		return "Equals"
+	case AdjustBP:
+		return "AdjustBP"
 	case Halt:
 		return "Halt"
 	default:
@@ -79,21 +84,27 @@ func (a AddressingMode) String() string {
 		return "Ind"
 	case Imm:
 		return "Imm"
+	case Rel:
+		return "Rel"
 	default:
 		return "Unknown"
 	}
 }
 
-func (p *Program) setDebug(val bool) {
+func (p *Program) SetDebug(val bool) {
 	p.debug = val
 }
 
 func (p *Program) Reset() {
 	p.ip = 0
+	p.bp = 0
 	p.output = nil
 	p.halted = false
-	if len(p.memory) != len(p.text) {
+	if len(p.memory) < len(p.text) {
 		p.memory = make([]int, len(p.text))
+	}
+	for i := range p.memory {
+		p.memory[i] = 0
 	}
 	copy(p.memory, p.text)
 }
@@ -121,7 +132,7 @@ func (p *Program) InitStateFromProgram(other *Program) {
 	}
 	copy(p.text, other.text)
 
-	if len(p.memory) != len(other.memory) {
+	if len(p.memory) < len(other.memory) {
 		p.memory = make([]int, len(other.memory))
 	}
 	copy(p.memory, other.memory)
@@ -163,8 +174,27 @@ func (p *Program) GetAddressingMode(index int) AddressingMode {
 	return AddressingMode((p.memory[p.ip] / int(math.Pow10(index+1))) % 10)
 }
 
+func (p *Program) checkMemSize(size int) {
+	if size >= len(p.memory) {
+		p.memory = append(p.memory, make([]int, size+1)...)
+	}
+}
+
 func (p *Program) GetOutputOperand(index int) *int {
-	return &p.memory[p.memory[p.ip+index]]
+	mode := p.GetAddressingMode(index)
+	operand := p.memory[p.ip+index]
+	switch mode {
+	case Ind:
+		p.checkMemSize(operand)
+		return &p.memory[operand]
+	case Imm:
+		panic(fmt.Sprintf("tried to use immediate addressing mode for output param"))
+	case Rel:
+		p.checkMemSize(p.bp + operand)
+		return &p.memory[p.bp+operand]
+	default:
+		panic(fmt.Sprintf("unknown addressing mode: %v", mode))
+	}
 }
 
 func (p *Program) GetInputOperand(index int) int {
@@ -173,9 +203,13 @@ func (p *Program) GetInputOperand(index int) int {
 	operand := p.memory[p.ip+index]
 	switch mode {
 	case Ind:
+		p.checkMemSize(operand)
 		inputValue = p.memory[operand]
 	case Imm:
 		inputValue = operand
+	case Rel:
+		p.checkMemSize(p.bp + operand)
+		inputValue = p.memory[p.bp+operand]
 	default:
 		panic(fmt.Sprintf("unknown addressing mode: %v", mode))
 	}
@@ -211,11 +245,11 @@ func (p *Program) Step() {
 		*dest = val
 		p.ip += 2
 	case Output:
-		dest := p.GetOutputOperand(1)
+		src := p.GetInputOperand(1)
 		if p.debug {
-			fmt.Printf("output: %d\n", *dest)
+			fmt.Printf("output: %d\n", src)
 		}
-		p.output = append(p.output, *dest)
+		p.output = append(p.output, src)
 		p.ip += 2
 	case JumpIfTrue:
 		input1 := p.GetInputOperand(1)
@@ -265,6 +299,13 @@ func (p *Program) Step() {
 			*dest = 0
 		}
 		p.ip += 4
+	case AdjustBP:
+		amount := p.GetInputOperand(1)
+		if p.debug {
+			fmt.Printf("bp += %d\n", amount)
+		}
+		p.bp += amount
+		p.ip += 2
 	case Halt:
 		p.halted = true
 	default:
