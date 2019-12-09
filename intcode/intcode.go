@@ -42,7 +42,7 @@ const (
 
 type Program struct {
 	text   []int
-	memory []int
+	memory map[int]int
 	ip     int
 	bp     int
 	halted bool
@@ -100,13 +100,10 @@ func (p *Program) Reset() {
 	p.bp = 0
 	p.output = nil
 	p.halted = false
-	if len(p.memory) < len(p.text) {
-		p.memory = make([]int, len(p.text))
+	p.memory = make(map[int]int)
+	for i := range p.text {
+		p.memory[i] = p.text[i]
 	}
-	for i := range p.memory {
-		p.memory[i] = 0
-	}
-	copy(p.memory, p.text)
 }
 
 func (p *Program) InitStateFromFile(filename string) {
@@ -132,10 +129,10 @@ func (p *Program) InitStateFromProgram(other *Program) {
 	}
 	copy(p.text, other.text)
 
-	if len(p.memory) < len(other.memory) {
-		p.memory = make([]int, len(other.memory))
+	p.memory = make(map[int]int)
+	for k, v := range other.memory {
+		p.memory[k] = v
 	}
-	copy(p.memory, other.memory)
 
 	if len(p.output) != len(other.output) {
 		p.output = make([]int, len(other.output))
@@ -174,24 +171,16 @@ func (p *Program) GetAddressingMode(index int) AddressingMode {
 	return AddressingMode((p.memory[p.ip] / int(math.Pow10(index+1))) % 10)
 }
 
-func (p *Program) checkMemSize(size int) {
-	if size >= len(p.memory) {
-		p.memory = append(p.memory, make([]int, size+1)...)
-	}
-}
-
-func (p *Program) GetOutputOperand(index int) *int {
+func (p *Program) GetOutputOperand(index int) int {
 	mode := p.GetAddressingMode(index)
 	operand := p.memory[p.ip+index]
 	switch mode {
 	case Ind:
-		p.checkMemSize(operand)
-		return &p.memory[operand]
+		return operand
 	case Imm:
 		panic(fmt.Sprintf("tried to use immediate addressing mode for output param"))
 	case Rel:
-		p.checkMemSize(p.bp + operand)
-		return &p.memory[p.bp+operand]
+		return p.bp + operand
 	default:
 		panic(fmt.Sprintf("unknown addressing mode: %v", mode))
 	}
@@ -203,12 +192,10 @@ func (p *Program) GetInputOperand(index int) int {
 	operand := p.memory[p.ip+index]
 	switch mode {
 	case Ind:
-		p.checkMemSize(operand)
 		inputValue = p.memory[operand]
 	case Imm:
 		inputValue = operand
 	case Rel:
-		p.checkMemSize(p.bp + operand)
 		inputValue = p.memory[p.bp+operand]
 	default:
 		panic(fmt.Sprintf("unknown addressing mode: %v", mode))
@@ -220,29 +207,29 @@ func (p *Program) Step() {
 	opcode := p.GetOpcode()
 	switch opcode {
 	case Add:
-		dest := p.GetOutputOperand(3)
+		destIndex := p.GetOutputOperand(3)
 		input1 := p.GetInputOperand(1)
 		input2 := p.GetInputOperand(2)
 		if p.debug {
 			fmt.Printf("*%d = %d + %d\n", p.GetMemory(p.GetIp()+3), input1, input2)
 		}
-		*dest = input1 + input2
+		p.memory[destIndex] = input1 + input2
 		p.ip += 4
 	case Mult:
-		dest := p.GetOutputOperand(3)
+		destIndex := p.GetOutputOperand(3)
 		input1 := p.GetInputOperand(1)
 		input2 := p.GetInputOperand(2)
 		if p.debug {
 			fmt.Printf("*%d = %d + %d\n", p.GetMemory(p.GetIp()+3), input1, input2)
 		}
-		*dest = input1 * input2
+		p.memory[destIndex] = input1 * input2
 		p.ip += 4
 	case Input:
-		dest := p.GetOutputOperand(1)
+		destIndex := p.GetOutputOperand(1)
 		valStr, _ := p.reader.ReadString('\n')
 		val, err := strconv.Atoi(valStr[:len(valStr)-1])
 		check(err)
-		*dest = val
+		p.memory[destIndex] = val
 		p.ip += 2
 	case Output:
 		src := p.GetInputOperand(1)
@@ -276,27 +263,27 @@ func (p *Program) Step() {
 	case LessThan:
 		input1 := p.GetInputOperand(1)
 		input2 := p.GetInputOperand(2)
-		dest := p.GetOutputOperand(3)
+		destIndex := p.GetOutputOperand(3)
 		if p.debug {
 			fmt.Printf("*%d = (if %d < %d)\n", p.GetMemory(p.GetIp()+3), input1, input2)
 		}
 		if input1 < input2 {
-			*dest = 1
+			p.memory[destIndex] = 1
 		} else {
-			*dest = 0
+			p.memory[destIndex] = 0
 		}
 		p.ip += 4
 	case Equals:
 		input1 := p.GetInputOperand(1)
 		input2 := p.GetInputOperand(2)
-		dest := p.GetOutputOperand(3)
+		destIndex := p.GetOutputOperand(3)
 		if p.debug {
 			fmt.Printf("*%d = (if %d == %d)\n", p.GetMemory(p.GetIp()+3), input1, input2)
 		}
 		if input1 == input2 {
-			*dest = 1
+			p.memory[destIndex] = 1
 		} else {
-			*dest = 0
+			p.memory[destIndex] = 0
 		}
 		p.ip += 4
 	case AdjustBP:
