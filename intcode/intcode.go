@@ -6,7 +6,6 @@ import (
 	"io"
 	"io/ioutil"
 	"math"
-	"os"
 	"strconv"
 	"strings"
 )
@@ -107,7 +106,7 @@ func (p *Program) Reset() {
 }
 
 func (p *Program) InitStateFromFile(filename string) {
-	dat, err := ioutil.ReadFile(os.Args[1])
+	dat, err := ioutil.ReadFile(filename)
 	check(err)
 
 	stringArray := strings.Split(string(dat), ",")
