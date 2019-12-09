@@ -26,7 +26,7 @@ func getPerm(orig, p []int) []int {
 	return result
 }
 
-func main() {
+func work(baseProg *intcode.Program, phaseInputs []int, result chan<- int) {
 	amps := []*intcode.Program{
 		&intcode.Program{},
 		&intcode.Program{},
@@ -35,30 +35,39 @@ func main() {
 		&intcode.Program{},
 	}
 
-	fmt.Println("*** PART 1 ***")
-	amps[0].InitStateFromFile(os.Args[1])
-	// copy ampA to all other amps
-	for _, amp := range amps[1:] {
-		amp.InitStateFromProgram(amps[0])
+	// copy baseProg to all other amps
+	for _, amp := range amps {
+		amp.InitStateFromProgram(baseProg)
 	}
 
+	inputSignal := 0
+	for i, phase := range phaseInputs {
+		ampInput := strings.NewReader(fmt.Sprintf("%d\n%d\n", phase, inputSignal))
+		output := amps[i].Run(ampInput)
+		inputSignal = output[0]
+	}
+	result <- inputSignal
+}
+
+func main() {
+	fmt.Println("*** PART 1 ***")
+	baseProg := intcode.Program{}
+	baseProg.InitStateFromFile(os.Args[1])
+	numWorkers := 0
+
+	results := make(chan int)
 	phases := []int{0, 1, 2, 3, 4}
 	bestThrust := 0
 	for p := make([]int, len(phases)); p[0] < len(p); nextPerm(p) {
-		inputSignal := 0
-		// reset ALL THE AMPS
-		for _, amp := range amps {
-			amp.Reset()
-		}
 		phaseInputs := getPerm(phases, p)
-		for i, phase := range phaseInputs {
-			ampInput := strings.NewReader(fmt.Sprintf("%d\n%d\n", phase, inputSignal))
-			output := amps[i].Run(ampInput)
-			inputSignal = output[0]
-		}
+		go work(&baseProg, phaseInputs, results)
+		numWorkers++
+	}
+	for i := 0; i < numWorkers; i++ {
+		result := <-results
 		// check to see if we reached MAX THRUST
-		if inputSignal > bestThrust {
-			bestThrust = inputSignal
+		if result > bestThrust {
+			bestThrust = result
 		}
 	}
 	fmt.Println("best thrust value:", bestThrust)

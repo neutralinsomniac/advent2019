@@ -26,7 +26,7 @@ func getPerm(orig, p []int) []int {
 	return result
 }
 
-func main() {
+func work(baseProg *intcode.Program, phaseInputs []int, result chan<- int) {
 	amps := []*intcode.Program{
 		&intcode.Program{},
 		&intcode.Program{},
@@ -35,41 +35,51 @@ func main() {
 		&intcode.Program{},
 	}
 
-	fmt.Println("*** PART 2 ***")
-	amps[0].InitStateFromFile(os.Args[1])
-	// copy the first amp to all other amps
-	for _, amp := range amps[1:] {
-		amp.InitStateFromProgram(amps[0])
+	// copy baseProg to all other amps
+	for _, amp := range amps {
+		amp.InitStateFromProgram(baseProg)
 	}
 
+	inputSignal := 0
+
+	// first init from phase inputs
+	for i, phase := range phaseInputs {
+		ampInput := strings.NewReader(fmt.Sprintf("%d\n%d\n", phase, inputSignal))
+		inputSignal, _ = amps[i].RunUntilOutput(ampInput)
+	}
+	// now feedback loop until halt
+	i := 0
+	for halted := false; halted != true; i++ {
+		var tmp int
+		ampInput := strings.NewReader(fmt.Sprintf("%d\n", inputSignal))
+		// only update our signal if this amp actually returns a signal (instead of halting)
+		tmp, halted = amps[i%len(amps)].RunUntilOutput(ampInput)
+		if !halted {
+			inputSignal = tmp
+		}
+	}
+	result <- inputSignal
+}
+
+func main() {
+	fmt.Println("*** PART 2 ***")
+	baseProg := intcode.Program{}
+	baseProg.InitStateFromFile(os.Args[1])
+	numWorkers := 0
+
+	results := make(chan int)
 	phases := []int{5, 6, 7, 8, 9}
 	bestThrust := 0
 	for p := make([]int, len(phases)); p[0] < len(p); nextPerm(p) {
-		inputSignal := 0
-		// reset ALL THE AMPS
-		for _, amp := range amps {
-			amp.Reset()
-		}
 		phaseInputs := getPerm(phases, p)
-		// first init from phase inputs
-		for i, phase := range phaseInputs {
-			ampInput := strings.NewReader(fmt.Sprintf("%d\n%d\n", phase, inputSignal))
-			inputSignal, _ = amps[i].RunUntilOutput(ampInput)
-		}
-		// now feedback loop until halt
-		i := 0
-		for halted := false; halted != true; i++ {
-			var tmp int
-			ampInput := strings.NewReader(fmt.Sprintf("%d\n", inputSignal))
-			// only update our signal if this amp actually returns a signal (instead of halting)
-			tmp, halted = amps[i%len(amps)].RunUntilOutput(ampInput)
-			if !halted {
-				inputSignal = tmp
-			}
-		}
+		go work(&baseProg, phaseInputs, results)
+		numWorkers++
+	}
+	for i := 0; i < numWorkers; i++ {
+		result := <-results
 		// check to see if we reached MAX THRUST
-		if inputSignal > bestThrust {
-			bestThrust = inputSignal
+		if result > bestThrust {
+			bestThrust = result
 		}
 	}
 	fmt.Println("best thrust value:", bestThrust)
