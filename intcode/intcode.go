@@ -94,10 +94,23 @@ func (p *Program) SetDebug(val bool) {
 	p.debug = val
 }
 
+func (p *Program) SetReader(reader io.Reader) {
+	p.reader = bufio.NewReader(reader)
+}
+
+func (p *Program) SetReaderFromInts(ints ...int) {
+	var sb strings.Builder
+	for _, i := range ints {
+		fmt.Fprintf(&sb, "%d\n", i)
+	}
+	p.SetReader(strings.NewReader(sb.String()))
+}
+
 func (p *Program) Reset() {
 	p.ip = 0
 	p.bp = 0
 	p.output = nil
+	p.reader = nil
 	p.halted = false
 	p.memory = make(map[int]int)
 	for i := range p.text {
@@ -224,6 +237,9 @@ func (p *Program) Step() {
 		p.memory[destIndex] = input1 * input2
 		p.ip += 4
 	case Input:
+		if p.reader == nil {
+			panic("encountered input instruction and no reader is set")
+		}
 		destIndex := p.GetOutputOperand(1)
 		valStr, _ := p.reader.ReadString('\n')
 		val, err := strconv.Atoi(valStr[:len(valStr)-1])
@@ -305,9 +321,7 @@ func (p *Program) StepBy(steps int) {
 	}
 }
 
-func (p *Program) Run(reader io.Reader) []int {
-	p.reader = bufio.NewReader(reader)
-
+func (p *Program) Run() []int {
 	for !p.halted {
 		p.Step()
 	}
@@ -316,8 +330,7 @@ func (p *Program) Run(reader io.Reader) []int {
 }
 
 /* return output, halted */
-func (p *Program) RunUntilOutput(reader io.Reader) (int, bool) {
-	p.reader = bufio.NewReader(reader)
+func (p *Program) RunUntilOutput() (int, bool) {
 	for p.GetOpcode() != Output && !p.halted {
 		p.Step()
 	}

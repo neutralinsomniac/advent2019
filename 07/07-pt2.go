@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/neutralinsomniac/advent2019/intcode"
 )
@@ -44,16 +43,16 @@ func work(baseProg *intcode.Program, phaseInputs []int, result chan<- int) {
 
 	// first init from phase inputs
 	for i, phase := range phaseInputs {
-		ampInput := strings.NewReader(fmt.Sprintf("%d\n%d\n", phase, inputSignal))
-		inputSignal, _ = amps[i].RunUntilOutput(ampInput)
+		amps[i].SetReaderFromInts(phase, inputSignal)
+		inputSignal, _ = amps[i].RunUntilOutput()
 	}
 	// now feedback loop until halt
 	i := 0
 	for halted := false; halted != true; i++ {
 		var tmp int
-		ampInput := strings.NewReader(fmt.Sprintf("%d\n", inputSignal))
 		// only update our signal if this amp actually returns a signal (instead of halting)
-		tmp, halted = amps[i%len(amps)].RunUntilOutput(ampInput)
+		amps[i%len(amps)].SetReaderFromInts(inputSignal)
+		tmp, halted = amps[i%len(amps)].RunUntilOutput()
 		if !halted {
 			inputSignal = tmp
 		}

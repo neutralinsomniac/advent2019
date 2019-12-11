@@ -3,7 +3,6 @@ package main
 import (
 	"fmt"
 	"os"
-	"strings"
 
 	"github.com/neutralinsomniac/advent2019/intcode"
 )
@@ -42,8 +41,8 @@ func work(baseProg *intcode.Program, phaseInputs []int, result chan<- int) {
 
 	inputSignal := 0
 	for i, phase := range phaseInputs {
-		ampInput := strings.NewReader(fmt.Sprintf("%d\n%d\n", phase, inputSignal))
-		output := amps[i].Run(ampInput)
+		amps[i].SetReaderFromInts(phase, inputSignal)
+		output := amps[i].Run()
 		inputSignal = output[0]
 	}
 	result <- inputSignal
