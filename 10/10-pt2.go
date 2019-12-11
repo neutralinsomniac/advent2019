@@ -7,7 +7,6 @@ import (
 	"os"
 	"sort"
 	"strings"
-	"time"
 )
 
 func check(e error) {
@@ -94,27 +93,32 @@ func main() {
 
 	// first find the best monitor
 	bestMonitor := 0
+	var startingCoord Coord
 	// angle, distance, Coord
-	var bestShitToVaporize map[float64]map[float64]Coord
-	var shitToVaporize map[float64]map[float64]Coord
 	for start, _ := range universe {
-		shitToVaporize = make(map[float64]map[float64]Coord)
+		angles := make(map[float64]bool)
 		for end, _ := range universe {
-			if start == end {
-				continue
+			if start != end {
+				angles[calcAngle(start, end)] = true
 			}
-			angle := calcAngle(start, end)
-			distance := calcDistance(start, end)
-			if shitToVaporize[angle] == nil {
-				shitToVaporize[angle] = make(map[float64]Coord)
-			}
+		}
+		if len(angles) > bestMonitor {
+			bestMonitor = len(angles)
+			startingCoord = start
+		}
+	}
 
-			shitToVaporize[angle][distance] = end
+	bestShitToVaporize := make(map[float64]map[float64]Coord)
+	for end, _ := range universe {
+		if startingCoord == end {
+			continue
 		}
-		if len(shitToVaporize) > bestMonitor {
-			bestMonitor = len(shitToVaporize)
-			bestShitToVaporize = shitToVaporize
+		angle := calcAngle(startingCoord, end)
+		distance := calcDistance(startingCoord, end)
+		if bestShitToVaporize[angle] == nil {
+			bestShitToVaporize[angle] = make(map[float64]Coord)
 		}
+		bestShitToVaporize[angle][distance] = end
 	}
 
 	sortedAngles := make([]float64, 0, len(bestShitToVaporize))
@@ -123,8 +127,7 @@ func main() {
 	}
 
 	sort.Float64s(sortedAngles)
-	fmt.Printf("\033[2J;\033[H")
-
+	//fmt.Printf("\033[2J;\033[H")
 	numVaporized := 0
 	for vapedSomething := true; vapedSomething; {
 		vapedSomething = false
@@ -142,10 +145,10 @@ func main() {
 					fmt.Println("WINNER", coord.x*100+coord.y)
 				}
 				delete(bestShitToVaporize[angle], sortedDistances[0])
-				delete(universe, coord)
-				fmt.Printf("\033[H")
-				fmt.Println(universe)
-				time.Sleep(50 * time.Millisecond)
+				//delete(universe, coord)
+				//fmt.Printf("\033[H")
+				//fmt.Println(universe)
+				//time.Sleep(50 * time.Millisecond)
 				vapedSomething = true
 			}
 		}
