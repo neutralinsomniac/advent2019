@@ -94,7 +94,6 @@ func main() {
 	// first find the best monitor
 	bestMonitor := 0
 	var startingCoord Coord
-	// angle, distance, Coord
 	for start, _ := range universe {
 		angles := make(map[float64]bool)
 		for end, _ := range universe {
@@ -108,6 +107,7 @@ func main() {
 		}
 	}
 
+	// angle, distance, Coord
 	bestShitToVaporize := make(map[float64]map[float64]Coord)
 	for end, _ := range universe {
 		if startingCoord == end {
