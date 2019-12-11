@@ -93,7 +93,7 @@ func main() {
 	hull := make(Hull)
 	robot := Robot{heading: up}
 	// direct reference since the initial tile technically isn't painted; it's just white already
-	hull[robot.pos] = Tile{color: white, painted: false}
+	hull.PaintTile(robot.pos, white)
 
 	for !halted {
 		colorUnderRobot := hull[robot.GetPos()].color
@@ -131,7 +131,7 @@ func main() {
 
 	for y := minY; y <= maxY; y++ {
 		for x := minX; x <= maxX; x++ {
-			if hull[Coord{x, y}].color == white && hull[Coord{x, y}].painted {
+			if hull[Coord{x, y}].color == white {
 				fmt.Printf("#")
 			} else {
 				fmt.Printf(".")
