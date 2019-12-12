@@ -92,7 +92,6 @@ func main() {
 
 	hull := make(Hull)
 	robot := Robot{heading: up}
-	// direct reference since the initial tile technically isn't painted; it's just white already
 	hull.PaintTile(robot.pos, white)
 
 	for !halted {
