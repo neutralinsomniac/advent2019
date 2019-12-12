@@ -6,6 +6,7 @@ import (
 	"math"
 	"sort"
 	"strings"
+	"time"
 )
 
 func check(e error) {
@@ -126,7 +127,7 @@ func main() {
 	}
 
 	sort.Float64s(sortedAngles)
-	//fmt.Printf("\033[2J;\033[H")
+	fmt.Printf("\033[2J;\033[H")
 	numVaporized := 0
 	for vapedSomething := true; vapedSomething; {
 		vapedSomething = false
@@ -144,10 +145,10 @@ func main() {
 					fmt.Println("WINNER", coord.x*100+coord.y)
 				}
 				delete(bestShitToVaporize[angle], sortedDistances[0])
-				//delete(universe, coord)
-				//fmt.Printf("\033[H")
-				//fmt.Println(universe)
-				//time.Sleep(50 * time.Millisecond)
+				delete(universe, coord)
+				fmt.Printf("\033[H")
+				fmt.Println(universe)
+				time.Sleep(50 * time.Millisecond)
 				vapedSomething = true
 			}
 		}
