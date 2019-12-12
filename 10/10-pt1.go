@@ -18,7 +18,7 @@ type Coord struct {
 }
 
 func InitStateFromFile(filename string) map[Coord]bool {
-	dat, err := ioutil.ReadFile(os.Args[1])
+	dat, err := ioutil.ReadFile(filename)
 	check(err)
 
 	universe := make(map[Coord]bool)

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
-	"os"
 	"sort"
 	"strings"
 )
@@ -42,7 +41,7 @@ func (u Universe) String() string {
 }
 
 func InitStateFromFile(filename string) Universe {
-	dat, err := ioutil.ReadFile(os.Args[1])
+	dat, err := ioutil.ReadFile(filename)
 	check(err)
 
 	universe := make(Universe)

@@ -15,7 +15,7 @@ func check(e error) {
 }
 
 func initStateFromFile(filename string) []int {
-	dat, err := ioutil.ReadFile(os.Args[1])
+	dat, err := ioutil.ReadFile(filename)
 	check(err)
 
 	stringArray := strings.Split(string(dat), ",")

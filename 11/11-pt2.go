@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"time"
 
 	"github.com/neutralinsomniac/advent2019/intcode"
 )
@@ -22,6 +23,43 @@ type Hull map[Coord]Tile
 func (h *Hull) PaintTile(coord Coord, color int) {
 	newTile := Tile{painted: true, color: color}
 	(*h)[coord] = newTile
+}
+
+func (hull Hull) Print(robot Robot) {
+	// first figure out our world boundaries
+	minX := math.MaxInt32
+	minY := math.MaxInt32
+	maxX := -1 * math.MaxInt32
+	maxY := -1 * math.MaxInt32
+	for coord, _ := range hull {
+		if coord.x > maxX {
+			maxX = coord.x
+		}
+		if coord.x < minX {
+			minX = coord.x
+		}
+		if coord.y > maxY {
+			maxY = coord.y
+		}
+		if coord.y < minY {
+			minY = coord.y
+		}
+	}
+
+	for y := minY; y <= maxY; y++ {
+		for x := minX; x <= maxX; x++ {
+			if (Coord{x, y}) == robot.pos {
+				fmt.Printf("%s", robot)
+			} else if hull[Coord{x, y}].painted == false {
+				fmt.Printf(".")
+			} else if hull[Coord{x, y}].color == white {
+				fmt.Printf("#")
+			} else {
+				fmt.Printf(" ")
+			}
+		}
+		fmt.Printf("\n")
+	}
 }
 
 type Heading int
@@ -48,6 +86,20 @@ const (
 type Robot struct {
 	heading Heading
 	pos     Coord
+}
+
+func (r Robot) String() string {
+	switch r.heading {
+	case up:
+		return "^"
+	case down:
+		return "v"
+	case left:
+		return "<"
+	case right:
+		return ">"
+	}
+	return ""
 }
 
 func (r *Robot) Turn(d Direction) {
@@ -94,48 +146,21 @@ func main() {
 	robot := Robot{heading: up}
 	hull.PaintTile(robot.pos, white)
 
+	fmt.Printf("\033[2J;\033[H")
+
 	for !halted {
 		colorUnderRobot := hull[robot.GetPos()].color
 		program.SetReaderFromInts(colorUnderRobot)
-		var colorToPaint, directionToTurn int
-		colorToPaint, halted = program.RunUntilOutput()
+		colorToPaint, halted := program.RunUntilOutput()
 		program.SetReader(nil)
-		directionToTurn, halted = program.RunUntilOutput()
+		directionToTurn, halted := program.RunUntilOutput()
 		if !halted {
 			hull.PaintTile(robot.pos, colorToPaint)
 			robot.Turn(Direction(directionToTurn))
 			robot.MoveForward()
 		}
-	}
-
-	// first figure out our world boundaries
-	minX := math.MaxInt32
-	minY := math.MaxInt32
-	maxX := -1 * math.MaxInt32
-	maxY := -1 * math.MaxInt32
-	for coord, _ := range hull {
-		if coord.x > maxX {
-			maxX = coord.x
-		}
-		if coord.x < minX {
-			minX = coord.x
-		}
-		if coord.y > maxY {
-			maxY = coord.y
-		}
-		if coord.y < minY {
-			minY = coord.y
-		}
-	}
-
-	for y := minY; y <= maxY; y++ {
-		for x := minX; x <= maxX; x++ {
-			if hull[Coord{x, y}].color == white {
-				fmt.Printf("#")
-			} else {
-				fmt.Printf(".")
-			}
-		}
-		fmt.Printf("\n")
+		fmt.Printf("\033[H")
+		hull.Print(robot)
+		time.Sleep(50 * time.Millisecond)
 	}
 }

@@ -69,7 +69,7 @@ func createMovementsFromStrings(movementString string) []movement {
 }
 
 func initStateFromFile(filename string) ([]movement, []movement) {
-	dat, err := ioutil.ReadFile(os.Args[1])
+	dat, err := ioutil.ReadFile(filename)
 	check(err)
 
 	bothWires := strings.Split(string(dat), "\n")
