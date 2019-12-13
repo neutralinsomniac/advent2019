@@ -309,6 +309,9 @@ func (p *Program) Step() {
 		p.bp += amount
 		p.ip += 2
 	case Halt:
+		if p.debug {
+			fmt.Printf("HALT\n")
+		}
 		p.halted = true
 	default:
 		panic(fmt.Sprintf("encountered unknown opcode: %d", opcode))
@@ -329,8 +332,16 @@ func (p *Program) Run() []int {
 	return p.output
 }
 
+func (p *Program) RunUntilInput() (halted bool) {
+	for p.GetOpcode() != Input && !p.halted {
+		p.Step()
+	}
+
+	return p.halted
+}
+
 /* return output, halted */
-func (p *Program) RunUntilOutput() (int, bool) {
+func (p *Program) RunUntilOutput() (output int, halted bool) {
 	for p.GetOpcode() != Output && !p.halted {
 		p.Step()
 	}
@@ -340,4 +351,20 @@ func (p *Program) RunUntilOutput() (int, bool) {
 
 	// return the last output
 	return p.output[len(p.output)-1], p.halted
+}
+
+/* return opcode, output if output happened, halted */
+func (p *Program) RunUntilInputOrOutput() (opcode Opcode, output int, halted bool) {
+	for opcode = p.GetOpcode(); opcode != Output && opcode != Input && !p.halted; opcode = p.GetOpcode() {
+		p.Step()
+	}
+
+	// execute the Output opcode
+	if opcode == Output {
+		p.Step()
+		output = p.output[len(p.output)-1]
+	}
+
+	halted = p.halted
+	return
 }
