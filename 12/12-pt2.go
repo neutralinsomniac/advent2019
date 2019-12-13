@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"fmt"
 	"os"
-	"strings"
 )
 
 type vector struct {
@@ -23,16 +22,37 @@ func (p planet) String() string {
 }
 
 type universe struct {
-	planets []planet
+	planets                []planet
+	minX, minY, maxX, maxY int
 }
 
-func (u universe) String() string {
-	var sb strings.Builder
-
+func (u *universe) Print() {
 	for _, p := range u.planets {
-		fmt.Fprintf(&sb, "%s\n", p)
+		if p.pos.x > u.maxX {
+			u.maxX = p.pos.x
+		}
+		if p.pos.x < u.minX {
+			u.minX = p.pos.x
+		}
+		if p.pos.y > u.maxY {
+			u.maxY = p.pos.y
+		}
+		if p.pos.y < u.minY {
+			u.minY = p.pos.y
+		}
 	}
-	return sb.String()
+	for y := u.minY; y <= u.maxY; y++ {
+		for x := u.minX; x <= u.maxX; x++ {
+			for i, p := range u.planets {
+				if p.pos.x == x && p.pos.y == y {
+					fmt.Printf("%d", i)
+				} else {
+					fmt.Printf(" ")
+				}
+			}
+		}
+		fmt.Printf("\n")
+	}
 }
 
 func (u universe) applyGravityToPlanet(index int) {
@@ -93,6 +113,26 @@ func InitStateFromFile(filename string) universe {
 	return universe
 }
 
+// greatest common divisor (GCD) via Euclidean algorithm
+func gcd(a, b int) int {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+// find Least Common Multiple (LCM) via GCD
+func lcm(a, b int, integers ...int) int {
+	result := a * b / gcd(a, b)
+
+	for i := 0; i < len(integers); i++ {
+		result = lcm(result, integers[i])
+	}
+	return result
+}
+
 func main() {
 	fmt.Println("*** PART 2 ***")
 
@@ -106,7 +146,14 @@ func main() {
 	last_y := 0
 	last_z := 0
 
+	//fmt.Printf("\033[2J;\033[H")
+
 	for x_period == 0 || y_period == 0 || z_period == 0 {
+		//fmt.Printf("\033[H")
+
+		//universe.Print()
+		//time.Sleep(100 * time.Millisecond)
+
 		for j := range universe.planets {
 			universe.applyGravityToPlanet(j)
 		}
@@ -162,5 +209,5 @@ func main() {
 		num_steps++
 	}
 
-	fmt.Println(x_period, y_period, z_period)
+	fmt.Println(lcm(x_period, y_period, z_period))
 }
