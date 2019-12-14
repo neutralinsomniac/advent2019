@@ -100,12 +100,10 @@ func main() {
 		opcode, output, halted = program.RunUntilInputOrOutput()
 		switch opcode {
 		case intcode.Input:
-			paddlepos := game.paddle
-			ballpos := game.ball
 			// move the joystick
-			if paddlepos.x > ballpos.x {
+			if game.paddle.x > game.ball.x {
 				program.SetReaderFromInts(-1)
-			} else if paddlepos.x < ballpos.x {
+			} else if game.paddle.x < game.ball.x {
 				program.SetReaderFromInts(1)
 			} else {
 				program.SetReaderFromInts(0)
