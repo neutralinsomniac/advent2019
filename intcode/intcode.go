@@ -152,6 +152,7 @@ func (p *Program) InitStateFromProgram(other *Program) {
 	copy(p.output, other.output)
 
 	p.ip = other.ip
+	p.bp = other.bp
 	p.halted = other.halted
 }
 
