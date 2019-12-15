@@ -94,6 +94,8 @@ func Find(slice []Coord, coord Coord) bool {
 }
 
 func Explore(program intcode.Program, world World, curLocation Coord, crumbs []Coord) {
+	newProg := intcode.Program{}
+
 	for _, direction := range []Direction{north, east, south, west} {
 		//world.Print()
 		var exploreLoc Coord
@@ -109,7 +111,6 @@ func Explore(program intcode.Program, world World, curLocation Coord, crumbs []C
 		}
 		// no backtracking
 		if Find(crumbs, exploreLoc) == false {
-			newProg := intcode.Program{}
 			newProg.InitStateFromProgram(&program)
 			newProg.SetReaderFromInts(int(direction))
 			status, _ := newProg.RunUntilOutput()
@@ -137,7 +138,7 @@ func main() {
 	world := make(World)
 	world[Coord{}] = Tile{visited: true, status: moved}
 
-	fmt.Printf("\033[2J;\033[H")
+	//fmt.Printf("\033[2J;\033[H")
 
 	Explore(program, world, Coord{}, make([]Coord, 0))
 }
