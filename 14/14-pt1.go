@@ -23,7 +23,7 @@ func (c ChemicalAmount) String() string {
 }
 
 type Recipe struct {
-	chemical ChemicalAmount
+	produces ChemicalAmount
 	needs    []ChemicalAmount
 }
 
@@ -31,22 +31,23 @@ type State struct {
 	// chemical name -> Recipe
 	book map[string]Recipe
 	// chemical name -> amount in supply
-	supply           map[string]int
-	totalOreProduced int
+	supply map[string]int
 }
 
 func (s *State) produce(name string, amount int) {
-	if name == "ORE" {
-		s.totalOreProduced += amount
-		s.supply[name] += amount
-	} else {
-		for s.supply[name] < amount {
-			for _, need := range s.book[name].needs {
-				s.produce(need.name, need.amount)
-			}
-			s.supply[name] += s.book[name].chemical.amount
+	for s.supply[name] < amount {
+		// produce this shit
+		s.supply[name] += s.book[name].produces.amount
+		for _, need := range s.book[name].needs {
+			s.supply[need.name] -= need.amount
 		}
-		s.supply[name] -= amount
+	}
+	for _, need := range s.book[name].needs {
+		if s.supply[need.name] < 0 {
+			if need.name != "ORE" {
+				s.produce(need.name, 0)
+			}
+		}
 	}
 }
 
@@ -67,7 +68,7 @@ func main() {
 		left := tmp[0]
 		right := tmp[1]
 		rightChemical := Recipe{}
-		fmt.Sscanf(right, "%d %s\n", &rightChemical.chemical.amount, &rightChemical.chemical.name)
+		fmt.Sscanf(right, "%d %s\n", &rightChemical.produces.amount, &rightChemical.produces.name)
 		needs := make([]ChemicalAmount, 0)
 		for _, text := range strings.Split(left, ", ") {
 			need := ChemicalAmount{}
@@ -76,9 +77,9 @@ func main() {
 			needs = append(needs, need)
 		}
 		rightChemical.needs = needs
-		state.book[rightChemical.chemical.name] = rightChemical
+		state.book[rightChemical.produces.name] = rightChemical
 	}
 
 	state.produce("FUEL", 1)
-	fmt.Println(state.totalOreProduced)
+	fmt.Println(-state.supply["ORE"])
 }
