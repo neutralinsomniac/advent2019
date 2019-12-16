@@ -79,14 +79,6 @@ const (
 	east
 )
 
-type Robot struct {
-	pos Coord
-}
-
-func (r Robot) String() string {
-	return "@"
-}
-
 func Find(slice []Coord, coord Coord) bool {
 	for _, item := range slice {
 		if item == coord {
