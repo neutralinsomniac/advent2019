@@ -35,6 +35,7 @@ type State struct {
 	totalOreProduced int
 }
 
+// this takes a *REALLY* long time (~2.5 hours on my vps) BUT it relies 0% on guess-and-check binary searching and just churns on creating fuel for as long as it has the available resources. not an optimal solution, but I'm proud of the approach so I'm keeping it
 func (s *State) produce(name string, amount int) {
 		if name == "ORE" && s.supply[name] < amount {
 			fmt.Println("fuel:", s.supply["FUEL"])
