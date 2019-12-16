@@ -154,7 +154,6 @@ func main() {
 		}
 	}
 
-	fmt.Println("oxygen is at", start)
 	toFill := make(map[Coord]bool)
 	toSearch := make(map[Coord]bool)
 
@@ -177,7 +176,8 @@ func main() {
 			world[coord] = Tile{visited: true, status: oxygenated}
 		}
 		toSearch = toFill
-		//	world.Print()
+		//world.Print()
 	}
+	// subtract 1 from minutes because our last run just verifies that the whole ship is filled with oxygen
 	fmt.Println("oxygen fill took", minutes-1, "minutes")
 }
