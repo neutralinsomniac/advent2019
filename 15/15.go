@@ -15,9 +15,10 @@ type Coord struct {
 type Status int
 
 const (
-	wall  Status = 0
-	moved        = 1
-	won          = 2
+	wall       Status = 0
+	moved             = 1
+	won               = 2
+	oxygenated        = 3
 )
 
 type Tile struct {
@@ -60,6 +61,8 @@ func (world World) Print() {
 					fmt.Printf(".")
 				case won:
 					fmt.Printf("!")
+				case oxygenated:
+					fmt.Printf("O")
 				}
 			}
 		}
@@ -122,7 +125,7 @@ func Explore(program intcode.Program, world World, curLocation Coord, crumbs []C
 				crumbs = append(crumbs, curLocation)
 				Explore(newProg, world, exploreLoc, crumbs)
 			case won:
-				fmt.Println("FOUND OXYGEN AFTER ", len(crumbs), "STEPS")
+				fmt.Println("FOUND OXYGEN AFTER", len(crumbs), "STEPS")
 				return
 			}
 		}
@@ -141,4 +144,40 @@ func main() {
 	//fmt.Printf("\033[2J;\033[H")
 
 	Explore(program, world, Coord{}, make([]Coord, 0))
+
+	fmt.Println("*** PART 2 ***")
+	var start Coord
+	for coord, tile := range world {
+		if tile.status == won {
+			start = coord
+			break
+		}
+	}
+
+	fmt.Println("oxygen is at", start)
+	toFill := make(map[Coord]bool)
+	toSearch := make(map[Coord]bool)
+
+	toSearch[start] = true
+	world[start] = Tile{status: oxygenated}
+
+	minutes := 0
+	for len(toSearch) > 0 {
+		minutes++
+		toFill = make(map[Coord]bool)
+		for coord := range toSearch {
+			for _, coord := range []Coord{Coord{coord.x, coord.y - 1}, Coord{coord.x, coord.y + 1}, Coord{coord.x - 1, coord.y}, Coord{coord.x + 1, coord.y}} {
+				if world[coord].status == moved {
+					toFill[coord] = true
+				}
+			}
+
+		}
+		for coord := range toFill {
+			world[coord] = Tile{visited: true, status: oxygenated}
+		}
+		toSearch = toFill
+		//	world.Print()
+	}
+	fmt.Println("oxygen fill took", minutes-1, "minutes")
 }
