@@ -23,7 +23,7 @@ func main() {
 	program.SetReaderFromInts(ints...)
 	output := program.Run()
 
-	for _, c := range output {
+	for _, c := range output[:len(output)-1] {
 		fmt.Printf("%c", byte(c))
 	}
 	fmt.Println("dust:", output[len(output)-1])
