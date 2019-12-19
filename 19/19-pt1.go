@@ -62,9 +62,7 @@ func main() {
 			program.Reset()
 			program.SetReaderFromInts(x, y)
 			out, _ := program.RunUntilOutput()
-			if out == 0 {
-				world[Coord{x, y}] = false
-			} else {
+			if out == 1 {
 				world[Coord{x, y}] = true
 				sum++
 			}
@@ -72,5 +70,4 @@ func main() {
 		}
 	}
 	fmt.Println(sum)
-	//world.Print()
 }
