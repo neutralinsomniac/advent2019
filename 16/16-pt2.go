@@ -55,7 +55,7 @@ func main() {
 	for phase := 0; phase < 100; phase++ {
 		newInput := make([]int, len(num))
 		sum := 0
-		for i := len(num)-1; i >= 0; i-- {
+		for i := len(num) - 1; i >= 0; i-- {
 			newInput[i] = (sum + input[i]) % 10
 			sum = newInput[i]
 		}
