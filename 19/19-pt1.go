@@ -51,7 +51,6 @@ func main() {
 	fmt.Println("*** PART 1 ***")
 
 	program := intcode.Program{}
-
 	program.InitStateFromFile(os.Args[1])
 
 	world := make(World)
@@ -66,7 +65,6 @@ func main() {
 				world[Coord{x, y}] = true
 				sum++
 			}
-
 		}
 	}
 	fmt.Println(sum)
