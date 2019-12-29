@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"strings"
 
+	combinations "github.com/mxschmitt/golang-combinations"
 	"github.com/neutralinsomniac/advent2019/intcode"
 )
 
@@ -125,14 +127,122 @@ func printRooms(room *Room) {
 
 func main() {
 	fmt.Println("*** PART 1 ***")
-
 	program := intcode.Program{}
 	program.InitStateFromFile(os.Args[1])
 
-	var room *Room = &Room{}
-	room.exits = make(map[string]*Room)
-	seen := make(map[string]bool)
-	room = Explore(program, room, "", seen)
+	directions := `north
+west
+take planetoid
+west
+take spool of cat6
+east
+east
+south
+west
+north
+take dark matter
+south
+south
+east
+west
+north
+east
+east
+east
+west
+north
+east
+west
+west
+take coin
+north
+take jam
+south
+west
+north
+west
+east
+south
+south
+take wreath
+west
+take fuel cell
+east
+north
+north
+west
+drop jam
+drop fuel cell
+drop planetoid
+drop spool of cat6
+drop coin
+drop dark matter
+drop wreath
+east
+south
+east
+east
+take sand
+west
+west
+north
+west
+drop sand
+`
 
-	//printRooms(room)
+	manual := false
+
+	inventory := []string{"jam", "fuel cell", "planetoid", "spool of cat6", "coin", "dark matter", "wreath", "sand"}
+
+	program.ClearOutput()
+	ints := convertASCIItoIntcode(directions)
+	program.SetReaderFromInts(ints...)
+
+	reader := bufio.NewReader(os.Stdin)
+	for range ints {
+		program.RunUntilInput()
+		program.StepBy(1)
+	}
+
+	program.RunUntilInput()
+
+	if manual {
+		for {
+			text, _ := reader.ReadString('\n')
+			if strings.Contains(text, "break") {
+				break
+			}
+			ints := convertASCIItoIntcode(text)
+			program.SetReaderFromInts(ints...)
+			for range ints {
+				program.RunUntilInput()
+				program.StepBy(1)
+			}
+			program.RunUntilInput()
+			fmt.Println(program.GetASCIIOutput())
+		}
+	}
+
+	program.ClearOutput()
+	for _, items := range combinations.All(inventory) {
+		newProg := intcode.Program{}
+		newProg.InitStateFromProgram(&program)
+		var sb strings.Builder
+		for _, item := range items {
+			sb.WriteString("take " + item + "\n")
+		}
+		sb.WriteString("south\n")
+
+		ints := convertASCIItoIntcode(sb.String())
+		newProg.SetReaderFromInts(ints...)
+		for range ints {
+			newProg.RunUntilInput()
+			newProg.StepBy(1)
+		}
+		newProg.RunUntilInput()
+		if !strings.Contains(newProg.GetASCIIOutput(), "Alert") {
+			fmt.Println(newProg.GetASCIIOutput())
+			break
+		}
+	}
 }
